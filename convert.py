@@ -38,7 +38,13 @@ def main(wf):
         if len(fr) != 3 or len(to) != 3:
             wait()
     
-    value = amount * get_rate(fr, to)
+    rate = get_rate(fr, to)
+    
+    if not rate:
+        rate = get_rate_alt(fr, to)
+        
+    value = amount * rate
+
     formatted = "{:.2f}".format(value)
     
     # Add an item to Alfred feedback
@@ -67,8 +73,16 @@ def wait():
 def get_rate(fr, to):
     data = web.get('http://apilayer.net/api/live?access_key=c938bcf13e0aff152614745f41414ed4&currencies=%s,%s' % (fr, to)).json()
     
-    try:
+    if data['success']:
         return (1 / data['quotes']['USD%s' % fr]) * data['quotes']['USD%s' % to]
+    else:
+        return None
+
+def get_rate_alt(fr, to):
+    data = web.get('http://free.currencyconverterapi.com/api/v3/convert?q=%s_%s&compact=ultra' % (fr, to)).json()
+    
+    try:
+        return data['%s_%s' % (fr, to)]
     except:
         wait()
 
