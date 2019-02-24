@@ -77,7 +77,8 @@ def set_defaults(args):
     cur = validate_cur(args[1])
 
     if args[0] == 'from' and cur:
-        wf.settings['defaults'] = {'fr': cur, 'to': wf.settings['defaults']['to']}
+        wf.settings['defaults'] = {'fr': cur,
+                                   'to': wf.settings['defaults']['to']}
     if args[0] == 'to':
         to = []
 
@@ -88,15 +89,17 @@ def set_defaults(args):
 
         cur = (', ').join(to)
 
-        wf.settings['defaults'] = {'fr': wf.settings['defaults']['fr'], 'to': to}
+        wf.settings['defaults'] = {
+            'fr': wf.settings['defaults']['fr'], 'to': to}
 
-    print cur
+    print(cur)
 
     return
 
 
 def wait():
-    wf.add_item('Please enter a valid format', 'cur [amount] [currency code] [currency code]')
+    wf.add_item('Please enter a valid format',
+                'cur [amount] [currency code] [currency code]')
 
     wf.send_feedback()
 
@@ -115,7 +118,8 @@ def get_rate(fr, to):
 
 def get_rate_alt(fr, to):
     try:
-        data = web.get('http://free.currencyconverterapi.com/api/v3/convert?q=%s_%s&compact=ultra' % (fr, to)).json()
+        data = web.get(
+            'http://free.currencyconverterapi.com/api/v3/convert?q=%s_%s&compact=ultra' % (fr, to)).json()
         return data['%s_%s' % (fr, to)]
     except:
         return None
