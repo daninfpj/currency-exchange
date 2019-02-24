@@ -46,23 +46,20 @@ def main(wf):
         if rate:
             rates.append(rate)
 
-            value = amount * rate
-
-            formatted = "{:.2f}".format(value)
-            formatted_amount = "{:.2f}".format(amount)
-            wf.add_item('%s %s = %s %s' % (formatted_amount, fr, formatted, cur), valid=True,
-                        subtitle='Press enter to copy to clipboard', copytext=formatted, arg=formatted)
-            value = amount / rate
-            formatted = "{:.2f}".format(value)
-
-            wf.add_item('%s %s = %s %s' % (formatted_amount, cur, formatted, fr), valid=True,
-                        subtitle='Press enter to copy to clipboard', copytext=formatted, arg=formatted)
+            add_item(amount, fr, amount * rate, cur)
+            add_item(amount, cur, amount / rate, fr)
 
     if len(rates) == 0:
         wait()
         return
     else:
         wf.send_feedback()
+
+
+def add_item(amount, fr, value, to):
+    formatted = '%g' % (value)
+    wf.add_item('%g %s = %s %s' % (amount, fr, formatted, to), valid=True,
+                subtitle='Press enter to copy to clipboard', copytext=formatted, arg=formatted)
 
 
 def check_settings(wf):
@@ -113,14 +110,13 @@ def get_rate(fr, to):
     else:
         return get_rate_alt(fr, to)
 
-    return res
-
 
 def get_rate_alt(fr, to):
     try:
         data = web.get(
-            'http://free.currencyconverterapi.com/api/v3/convert?q=%s_%s&compact=ultra' % (fr, to)).json()
-        return data['%s_%s' % (fr, to)]
+            'http://free.currencyconverterapi.com/api/v3/convert?q=%s_%s&compact=ultra^&apiKey=5b0607fcc1fe232a0178' % (fr, to)).json()
+
+        return data['results']['%s_%s' % (fr, to)]['val']
     except:
         return None
 
