@@ -49,7 +49,7 @@ def main(wf):
 
             formatted = "{:.2f}".format(value)
 
-            wf.add_item('%d %s = %s %s' % (amount, fr, formatted, cur), valid=True, subtitle='Press enter to copy to clipboard', copytext=formatted, arg=formatted)
+            wf.add_item('%g %s = %s %s' % (amount, fr, formatted, cur), valid=True, subtitle='Press enter to copy to clipboard', copytext=formatted, arg=formatted)
 
     if len(rates) == 0:
         wait()
