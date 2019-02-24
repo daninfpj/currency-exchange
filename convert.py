@@ -7,6 +7,7 @@ from workflow import Workflow, web
 
 log = None
 
+
 def main(wf):
     # Get args from Workflow as normalized Unicode
     args = wf.args
@@ -48,8 +49,14 @@ def main(wf):
             value = amount * rate
 
             formatted = "{:.2f}".format(value)
+            formatted_amount = "{:.2f}".format(amount)
+            wf.add_item('%s %s = %s %s' % (formatted_amount, fr, formatted, cur), valid=True,
+                        subtitle='Press enter to copy to clipboard', copytext=formatted, arg=formatted)
+            value = amount / rate
+            formatted = "{:.2f}".format(value)
 
-            wf.add_item('%g %s = %s %s' % (amount, fr, formatted, cur), valid=True, subtitle='Press enter to copy to clipboard', copytext=formatted, arg=formatted)
+            wf.add_item('%s %s = %s %s' % (formatted_amount, cur, formatted, fr), valid=True,
+                        subtitle='Press enter to copy to clipboard', copytext=formatted, arg=formatted)
 
     if len(rates) == 0:
         wait()
@@ -57,18 +64,20 @@ def main(wf):
     else:
         wf.send_feedback()
 
+
 def check_settings(wf):
     if not 'defaults' in wf.settings:
-        wf.settings['defaults'] = { 'fr': 'USD', 'to': ['EUR'] }
+        wf.settings['defaults'] = {'fr': 'USD', 'to': ['EUR']}
 
     if isinstance(wf.settings['defaults']['to'], basestring):
         wf.settings['defaults']['to'] = [wf.settings['defaults']['to']]
+
 
 def set_defaults(args):
     cur = validate_cur(args[1])
 
     if args[0] == 'from' and cur:
-        wf.settings['defaults'] = { 'fr': cur, 'to': wf.settings['defaults']['to'] }
+        wf.settings['defaults'] = {'fr': cur, 'to': wf.settings['defaults']['to']}
     if args[0] == 'to':
         to = []
 
@@ -79,19 +88,22 @@ def set_defaults(args):
 
         cur = (', ').join(to)
 
-        wf.settings['defaults'] = { 'fr': wf.settings['defaults']['fr'], 'to': to }
+        wf.settings['defaults'] = {'fr': wf.settings['defaults']['fr'], 'to': to}
 
     print cur
 
     return
+
 
 def wait():
     wf.add_item('Please enter a valid format', 'cur [amount] [currency code] [currency code]')
 
     wf.send_feedback()
 
+
 def get_rate(fr, to):
-    data = web.get('http://apilayer.net/api/live?access_key=c938bcf13e0aff152614745f41414ed4&currencies=%s,%s' % (fr, to)).json()
+    data = web.get(
+        'http://apilayer.net/api/live?access_key=c938bcf13e0aff152614745f41414ed4&currencies=%s,%s' % (fr, to)).json()
 
     if data['success']:
         return (1 / data['quotes']['USD%s' % fr]) * data['quotes']['USD%s' % to]
@@ -100,6 +112,7 @@ def get_rate(fr, to):
 
     return res
 
+
 def get_rate_alt(fr, to):
     try:
         data = web.get('http://free.currencyconverterapi.com/api/v3/convert?q=%s_%s&compact=ultra' % (fr, to)).json()
@@ -107,11 +120,13 @@ def get_rate_alt(fr, to):
     except:
         return None
 
+
 def validate_cur(cur):
     if len(cur) == 3:
         return cur.upper()
     else:
         return None
+
 
 if __name__ == '__main__':
     wf = Workflow()
