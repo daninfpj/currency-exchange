@@ -23,10 +23,14 @@ def main(wf):
     amount = 1
 
     if len(args):
-        if args[0].replace('.', '', 1).isdigit():
-            amount = float(args[0])
-            num_args = 2
-        else:
+        try:
+            arg = eval(args[0])
+            if str(arg).replace('.', '', 1).isdigit():
+                amount = arg
+                num_args = 2
+            else:
+                num_args = 1
+        except:
             num_args = 1
 
         if len(args) >= num_args:
