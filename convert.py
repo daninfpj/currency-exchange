@@ -2,10 +2,12 @@
 # encoding: utf-8
 
 import sys
+import locale
 
 from workflow import Workflow, web
 
 log = None
+locale.setlocale(locale.LC_ALL, '')
 
 
 def main(wf):
@@ -57,9 +59,10 @@ def main(wf):
 
 
 def add_item(amount, fr, value, to):
-    formatted = '%g' % (value)
-    wf.add_item('%g %s = %s %s' % (amount, fr, formatted, to), valid=True,
-                subtitle='Press enter to copy to clipboard', copytext=formatted, arg=formatted)
+    formatted_amount = locale.format('%.0f', amount, True) if amount.is_integer() else locale.format('%.2f', amount, True)
+    formatted_value = locale.format('%.0f', value, True) if value.is_integer() else locale.format('%.2f', value, True)
+    wf.add_item('%s %s = %s %s' % (formatted_amount, fr, formatted_value, to), valid=True,
+                subtitle='Press enter to copy to clipboard', copytext=formatted_value, arg=formatted_value)
 
 
 def check_settings(wf):
