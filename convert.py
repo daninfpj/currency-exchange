@@ -2,6 +2,8 @@
 # encoding: utf-8
 
 import sys
+import locale
+import subprocess
 
 from workflow import Workflow, web
 
@@ -13,6 +15,10 @@ def main(wf):
     args = wf.args
 
     check_settings(wf)
+    try:
+        locale.setlocale(locale.LC_ALL, (wf.settings['defaults']['locale'], 'UTF-8'))
+    except locale.Error:
+        locale.setlocale(locale.LC_ALL, (wf.settings['defaults']['locale'][:2], 'UTF-8'))
 
     if len(args):
         if args[0] == 'from' or args[0] == 'to':
@@ -57,14 +63,18 @@ def main(wf):
 
 
 def add_item(amount, fr, value, to):
-    formatted = '%g' % (value)
-    wf.add_item('%g %s = %s %s' % (amount, fr, formatted, to), valid=True,
-                subtitle='Press enter to copy to clipboard', copytext=formatted, arg=formatted)
+    formatted_amount = locale.format('%.0f', amount, True) if amount.is_integer() else locale.format('%.2f', amount, True)
+    formatted_value = locale.format('%.0f', value, True) if value.is_integer() else locale.format('%.2f', value, True)
+    wf.add_item('%s %s = %s %s' % (formatted_amount, fr, formatted_value, to), valid=True,
+                subtitle='Press enter to copy to clipboard', copytext=formatted_value, arg=formatted_value)
 
 
 def check_settings(wf):
     if not 'defaults' in wf.settings:
-        wf.settings['defaults'] = {'fr': 'USD', 'to': ['EUR']}
+        wf.settings['defaults'] = {'fr': 'USD', 'to': ['EUR'], 'locale': get_default_locale()}
+    
+    if not 'locale' in wf.settings['defaults']:
+        wf.settings['defaults']['locale'] = get_default_locale()
 
     if isinstance(wf.settings['defaults']['to'], basestring):
         wf.settings['defaults']['to'] = [wf.settings['defaults']['to']]
@@ -74,8 +84,7 @@ def set_defaults(args):
     cur = validate_cur(args[1])
 
     if args[0] == 'from' and cur:
-        wf.settings['defaults'] = {'fr': cur,
-                                   'to': wf.settings['defaults']['to']}
+        wf.settings['defaults']['fr'] = cur
     if args[0] == 'to':
         to = []
 
@@ -86,12 +95,22 @@ def set_defaults(args):
 
         cur = (', ').join(to)
 
-        wf.settings['defaults'] = {
-            'fr': wf.settings['defaults']['fr'], 'to': to}
+        wf.settings['defaults']['to'] = to
 
     print(cur)
 
     return
+
+
+def get_default_locale():
+    """Return system language"""
+    output = subprocess.check_output(['defaults', 'read', '-g',
+                                      'AppleLanguages'])
+    output = output.strip('()\n ')
+    langs = [s.strip('", ').replace('-', '_') for s in output.split('\n')]
+    if not len(langs):
+        raise ValueError('Could not determine system locale')
+    return langs[0]
 
 
 def wait():
